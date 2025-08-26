@@ -1,0 +1,18 @@
+name: Warm Render
+on:
+  schedule:
+    - cron: "*/5 * * * *" 
+  workflow_dispatch:         # allow manual run
+jobs:
+  curl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          URL="https://interview-suite.onrender.com/healthz"
+          echo "Pinging $URL"
+          http_code=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+          echo "HTTP $http_code"
+          if [ "$http_code" -ge 400 ]; then
+            exit 1
+          fi
