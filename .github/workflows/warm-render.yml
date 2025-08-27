@@ -1,7 +1,7 @@
 name: Warm Render
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 5 min
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       - name: Curl ${{ matrix.url }}
         run: |
           set -e
-          http_code=$(curl -fsS -o /dev/null -w "%{http_code}" --max-time 15 "${{ matrix.url }}")
+          http_code=$(curl -fsS --retry 3 --retry-delay 5 -o /dev/null -w "%{http_code}" --max-time 15 "${{ matrix.url }}")
           echo "HTTP $http_code for ${{ matrix.url }}"
           if [ "$http_code" -ge 400 ] || [ "$http_code" -lt 200 ]; then
             exit 1
