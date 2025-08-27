@@ -1,18 +1,23 @@
 name: Warm Render
 on:
   schedule:
-    - cron: "*/5 * * * *" 
-  workflow_dispatch:         # allow manual run
+    - cron: "*/5 * * * *"   # every 5 min
+  workflow_dispatch:
+
 jobs:
-  curl:
+  ping:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        url:
+          - https://interview-suite.onrender.com/healthz
+          - https://interview-suite-pollar.onrender.com/health
     steps:
-      - name: Ping health endpoint
+      - name: Curl ${{ matrix.url }}
         run: |
-          URL="https://interview-suite.onrender.com/healthz"
-          echo "Pinging $URL"
-          http_code=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
-          echo "HTTP $http_code"
-          if [ "$http_code" -ge 400 ]; then
+          set -e
+          http_code=$(curl -fsS -o /dev/null -w "%{http_code}" --max-time 15 "${{ matrix.url }}")
+          echo "HTTP $http_code for ${{ matrix.url }}"
+          if [ "$http_code" -ge 400 ] || [ "$http_code" -lt 200 ]; then
             exit 1
           fi
